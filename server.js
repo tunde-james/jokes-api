@@ -32,18 +32,18 @@ let db = [
   },
 ];
 
-console.log(db);
-
 // POST, GET, PATCH, DELETE - CRUD
 const requesthandler = (req, res) => {
   console.log(req.url);
 
   if (req.url === '/' && req.method === 'GET') {
     getJokes(req, res);
-  } else if (req.url === '/jokes/1' && req.method === 'PATCH') {
+  } else if (req.url === '/jokes/5' && req.method === 'PATCH') {
     updateJoke(req, res);
   } else if (req.url === '/' && req.method === 'POST') {
     postJoke(req, res);
+  } else if (req.url === '/jokes/1' && req.method === 'DELETE') {
+    deleteJoke(req, res);
   } else {
     res.writeHead(404);
     res.end(JSON.stringify({ error: true, message: 'Not found' }));
@@ -57,7 +57,7 @@ function getJokes(req, res) {
 
 function updateJoke(req, res) {
   const body = [];
-  const id = +req.url.split('/')[2];
+  const jokeId = +req.url.split('/')[2];
 
   req.on('data', (chunk) => {
     body.push(chunk);
@@ -67,20 +67,20 @@ function updateJoke(req, res) {
     const convertedBuffer = Buffer.concat(body).toString();
     const jsonResponse = JSON.parse(convertedBuffer);
 
-    const updateDB = db.map((item) => {
-      if (item.id === id) {
+    let updatedDB = db.map((joke) => {
+      if (joke.id === jokeId) {
         return {
-          ...item,
+          ...joke,
           ...jsonResponse,
         };
       }
-      return item;
+      return joke;
     });
 
-    db = updateDB;
+    updatedDB = db.find((joke) => joke.id === jokeId);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(updatedDB));
   });
-
-  res.end(JSON.stringify({ id }));
 }
 
 function postJoke(req, res) {
@@ -97,6 +97,15 @@ function postJoke(req, res) {
     res.writeHead(201, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(db));
   });
+}
+
+function deleteJoke(req, res) {
+  const jokeId = +req.url.split('/')[2];
+  const deletedJoke = db.find((joke) => joke.id === jokeId);
+
+  db = db.filter((joke) => joke.id !== jokeId);
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(deletedJoke));
 }
 
 const server = createServer(requesthandler);
