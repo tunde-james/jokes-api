@@ -67,7 +67,7 @@ function updateJoke(req, res) {
     const convertedBuffer = Buffer.concat(body).toString();
     const jsonResponse = JSON.parse(convertedBuffer);
 
-    let updatedDB = db.map((joke) => {
+    const updatedDB = db.map((joke) => {
       if (joke.id === jokeId) {
         return {
           ...joke,
@@ -77,7 +77,7 @@ function updateJoke(req, res) {
       return joke;
     });
 
-    updatedDB = db.find((joke) => joke.id === jokeId);
+  db = updatedDB
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(updatedDB));
   });
